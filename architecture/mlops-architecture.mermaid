@@ -1,0 +1,34 @@
+graph TD
+    subgraph Orchestration [Cloud Composer]
+        DAG[Airflow DAG]
+    end
+
+    subgraph Data_Processing [Serverless DataProc]
+        Batch[Spark Batch Job]
+    end
+
+    subgraph ML_Workflow [Vertex AI Pipelines]
+        Pipeline[ML Pipeline]
+        Train[Training]
+        Eval[Evaluation]
+        Deploy[Deployment]
+    end
+
+    subgraph Storage
+        GCS[Cloud Storage]
+        BQ[BigQuery]
+        AR[Artifact Registry]
+    end
+
+    DAG -->|Triggers| Batch
+    DAG -->|Triggers| Pipeline
+    
+    Batch -->|Reads| GCS
+    Batch -->|Writes| GCS
+    
+    Pipeline -->|Reads| BQ
+    Pipeline -->|Stores Artifacts| GCS
+    Pipeline -->|Pushes Image| AR
+    
+    Train --> Eval
+    Eval -->|If Good| Deploy
