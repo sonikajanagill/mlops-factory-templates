@@ -67,3 +67,26 @@ output "sa_dataproc_email" {
 output "sa_vertex_pipeline_email" {
   value = google_service_account.sa_vertex_pipeline.email
 }
+
+# 4. Cloud Build Service Account
+resource "google_service_account" "sa_cloudbuild" {
+  account_id   = "sa-cloudbuild"
+  display_name = "Cloud Build Service Account"
+  project      = var.project_id
+}
+
+resource "google_project_iam_member" "cloudbuild_roles" {
+  for_each = toset([
+    "roles/cloudbuild.builds.builder",
+    "roles/storage.admin",
+    "roles/composer.admin",
+    "roles/aiplatform.admin"
+  ])
+  project = var.project_id
+  role    = each.key
+  member  = "serviceAccount:${google_service_account.sa_cloudbuild.email}"
+}
+
+output "sa_cloudbuild_email" {
+  value = google_service_account.sa_cloudbuild.email
+}

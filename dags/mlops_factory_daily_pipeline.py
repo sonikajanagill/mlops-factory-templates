@@ -8,10 +8,12 @@ from airflow.providers.google.cloud.operators.vertex_ai.pipeline_job import RunP
 from airflow.operators.python import PythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 
+from airflow.models import Variable
+
 # Variables (should be Airflow Variables in prod)
-PROJECT_ID = "your-project-id"
-REGION = "us-central1"
-BUCKET_NAME = "your-bucket-name"
+PROJECT_ID = Variable.get("project_id")
+REGION = Variable.get("region", default_var="us-central1")
+BUCKET_NAME = Variable.get("bucket_name")
 PIPELINE_ROOT = f"gs://{BUCKET_NAME}/pipeline_root"
 
 default_args = {

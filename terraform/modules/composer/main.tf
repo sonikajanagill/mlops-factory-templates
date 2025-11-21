@@ -18,10 +18,10 @@ resource "google_composer_environment" "mlops_composer" {
       service_account = var.service_account
       network         = "projects/${var.project_id}/global/networks/${var.network_name}"
       # For private IP (recommended for prod), uncomment below:
-      # ip_allocation_policy {
-      #   use_ip_aliases = true
-      # }
-      # enable_private_endpoint = true
+      ip_allocation_policy {
+        use_ip_aliases = true
+      }
+      enable_private_endpoint = true
     }
   }
 }
