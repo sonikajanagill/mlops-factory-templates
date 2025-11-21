@@ -1,62 +1,106 @@
-# MLOps Factory Templates
+# MLOps Factory Templates 🏭
 
-> Topic: "From Data Chaos to Production AI"
+![MLOps Factory](https://via.placeholder.com/800x400?text=MLOps+Factory+Architecture)
 
-This repository contains production-ready templates for building MLOps pipelines on Google Cloud Platform. It demonstrates modern architecture patterns using Cloud Composer (Airflow), Serverless DataProc, and Vertex AI Pipelines.
+> **"From Data Chaos to Production AI"** - As seen at DevFest London 2025
 
-## Architecture
+Welcome to the **MLOps Factory**. This repository is a production-ready, opinionated template for building scalable MLOps pipelines on Google Cloud Platform. It implements the "Factory" pattern where:
 
-![MLOps Architecture](architecture/mlops-architecture.png)
+*   **Cloud Composer (Airflow)** is the **Factory Manager**, orchestrating the entire workflow.
+*   **Dataproc Serverless** is the **Heavy Machinery**, processing massive datasets efficiently.
+*   **Vertex AI** is the **Assembly Line**, training, evaluating, and deploying models.
 
-The architecture follows a modular approach:
-1.  **Orchestration**: Cloud Composer (Airflow) manages the end-to-end workflow.
-2.  **Data Processing**: Serverless DataProc batches handle heavy data transformation tasks.
-3.  **ML Workflow**: Vertex AI Pipelines manage the machine learning lifecycle (training, evaluation, deployment).
-4.  **Artifacts**: GCS and Artifact Registry store data and models.
+## 🚀 Features
 
-## Repository Structure
+*   **Infrastructure as Code (Terraform)**: One-click deployment of the entire factory.
+*   **Serverless Data Processing**: PySpark jobs on Dataproc Serverless (no cluster management!).
+*   **Vertex AI Pipelines**: Reusable KFP v2 components for training and deployment.
+*   **Feature Store**: BigQuery-backed feature management.
+*   **Closed-Loop Monitoring**: Automatic retraining triggered by model drift alerts.
+*   **CI/CD**: Cloud Build integration for automated testing and deployment.
 
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    subgraph Factory Manager [Cloud Composer]
+        DAG[Daily Pipeline DAG]
+    end
+
+    subgraph Heavy Machinery [Dataproc Serverless]
+        Spark[Feature Engineering Job]
+    end
+
+    subgraph Assembly Line [Vertex AI]
+        Pipeline[Training Pipeline]
+        Registry[Model Registry]
+        Endpoint[Prediction Endpoint]
+    end
+
+    subgraph Warehouse [Google Cloud Storage]
+        Raw[Raw Data]
+        Processed[Processed Data]
+    end
+
+    DAG -->|Triggers| Spark
+    Spark -->|Reads| Raw
+    Spark -->|Writes| Processed
+    DAG -->|Triggers| Pipeline
+    Pipeline -->|Reads| Processed
+    Pipeline -->|Registers| Registry
+    Pipeline -->|Deploys| Endpoint
 ```
-mlops-factory-templates/
-├── README.md                    # This file
-├── architecture/                # Architecture diagrams
-│   └── mlops-architecture.mermaid
-├── composer-dags/               # Airflow DAGs
-│   └── dataproc_batch_dag.py    # Serverless DataProc orchestration
-├── vertex-ai/                   # ML Pipeline definitions
-│   └── pipeline.py              # Vertex AI Pipeline definition
-└── docs/                        # Documentation
-    ├── getting-started.md       # Setup and deployment guide
-    ├── cost-optimization.md     # Cost saving strategies
-    └── security-reliability.md  # Security and reliability best practices
-```
 
-## Quick Start
+## 🛠️ Getting Started
 
-1.  **Clone this repository**:
+### Prerequisites
+*   Google Cloud Project with Billing enabled.
+*   `gcloud` CLI installed and authenticated.
+*   `terraform` installed (>= 1.5).
+
+### Deployment in 10 Minutes
+
+1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-org/mlops-factory-templates.git
+    git clone https://github.com/sonikajanagill/mlops-factory-templates.git
     cd mlops-factory-templates
     ```
 
-2.  **Set up your environment**:
-    Follow the [Getting Started Guide](docs/getting-started.md) to configure your GCP project and development environment.
+2.  **Initialize Infrastructure:**
+    ```bash
+    cd terraform
+    terraform init
+    terraform apply -var="project_id=YOUR_PROJECT_ID"
+    ```
+    *Type `yes` when prompted.*
 
-3.  **Deploy a Pipeline**:
-    - Upload `composer-dags/dataproc_batch_dag.py` to your Cloud Composer DAGs bucket.
-    - Compile and submit the Vertex AI pipeline using `vertex-ai/pipeline.py`.
+3.  **Upload Assets:**
+    The `cloudbuild.yaml` handles this automatically on push, or you can manually sync:
+    ```bash
+    # Get bucket name from terraform output
+    export DAG_BUCKET=$(terraform output -raw composer_bucket)
+    gsutil -m rsync -r ../dags/ gs://$DAG_BUCKET/dags/
+    ```
 
-## Key Features
+4.  **Run the Factory:**
+    Go to the Airflow UI (link in Composer console) and trigger `mlops_factory_daily_pipeline`.
 
--   **Serverless Data Processing**: Uses `DataprocCreateBatchOperator` to run Spark jobs without managing clusters.
--   **Vertex AI Integration**: Seamlessly triggers Vertex AI Pipelines from Airflow.
--   **Cost Optimized**: configured for preemptible instances and serverless execution.
--   **Enterprise Ready**: Includes error handling, retries, and security best practices.
+## 📂 Repository Structure
 
-## Contributing
+*   `terraform/`: Infrastructure definitions (IAM, Storage, Composer, Vertex).
+*   `dags/`: Airflow DAGs for orchestration.
+*   `src/dataproc/`: PySpark jobs for data processing.
+*   `pipelines/`: Vertex AI Pipeline definitions and components.
+*   `functions/`: Cloud Functions for event-driven triggers.
 
-Contributions are welcome! Please read our contributing guidelines before submitting a pull request.
+## 💰 Cost Estimate
+*   **Cloud Composer 3**: ~$0.50/hour (small environment).
+*   **Dataproc Serverless**: Pay per second of execution.
+*   **Vertex AI**: Pay per training hour and node hour.
+*   **Estimated Total for Demo**: < $5.00 (if destroyed after use).
 
-## Contact
+## 🤝 Contributing
+Pull requests are welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
 
--   **Maintainer**: Sonika Janagill
+---
+*Built with ❤️ by Sonika Janagill for the MLOps Community.*

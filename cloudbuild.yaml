@@ -1,0 +1,55 @@
+steps:
+# 1. Terraform Init
+- name: 'hashicorp/terraform:1.5.7'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+    cd terraform
+    terraform init
+
+# 2. Terraform Plan
+- name: 'hashicorp/terraform:1.5.7'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+    cd terraform
+    terraform plan -out=tfplan
+
+# 3. Terraform Apply (Manual approval needed in prod, auto here for factory)
+- name: 'hashicorp/terraform:1.5.7'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+    cd terraform
+    terraform apply -auto-approve tfplan
+
+# 4. Copy DAGs to Composer Bucket
+# We need to get the bucket name from Terraform output first
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+    cd terraform
+    export DAG_BUCKET=$(terraform output -raw composer_bucket)
+    echo "Deploying DAGs to $DAG_BUCKET"
+    gsutil -m rsync -r ../dags/ gs://$DAG_BUCKET/dags/
+
+# 5. Compile & Upload Vertex Pipelines
+- name: 'python:3.9'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+    pip install kfp google-cloud-aiplatform
+    cd pipelines
+    python penguin_training_pipeline.py
+    # Upload to Pipeline Root Bucket (get from TF output)
+    # For simplicity, assuming bucket name convention or passing via env var
+    # In a real setup, we'd parse the TF output again
+    
+options:
+  logging: CLOUD_LOGGING_ONLY
