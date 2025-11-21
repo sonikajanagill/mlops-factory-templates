@@ -15,6 +15,48 @@ from airflow import DAG
 from airflow.providers.google.cloud.operators.dataproc import DataprocCreateBatchOperator
 from airflow.utils.trigger_rule import TriggerRule
 
+from airflow.providers.google.cloud.operators.vertex_ai.pipeline_job import RunPipelineJobOperator
+from airflow.providers.google.cloud.sensors.gcs import GCSObjectsWithPrefixExistenceSensor
+from airflow.operators.python import PythonOperator, BranchPythonOperator
+from airflow.operators.dummy import DummyOperator
+import logging
+import random
+
+def check_execution_condition(**kwargs):
+    """
+    Decide whether to proceed with the pipeline or skip.
+    Returns the task_id of the next task to run.
+    """
+    # Example logic: Randomly decide (for demo) or check a condition
+    # In prod, you might check file size, specific flags, etc.
+    should_run = True # Set to random.choice([True, False]) to test both paths
+    
+    if should_run:
+        logging.info("Condition met. Proceeding with DataProc batch.")
+        return "create_dataproc_batch"
+    else:
+        logging.info("Condition not met. Skipping processing.")
+        return "skip_processing"
+
+def notify_failure(context):
+    """
+    Callback function to send notifications on task failure.
+    """
+    task_instance = context['task_instance']
+    task_id = task_instance.task_id
+    dag_id = context['dag'].dag_id
+    
+    # TODO: Implement actual Email/Slack sending logic here
+    # Example: send_slack_notification(...)
+    logging.error(f"CRITICAL: Task {task_id} in DAG {dag_id} failed!")
+    logging.info("Sending Slack/Email notification to operations team...")
+
+def log_success(**kwargs):
+    """
+    Log success message after pipeline completion.
+    """
+    logging.info("Pipeline completed successfully. Model deployed and verified.")
+
 # TODO: Replace with your actual values
 PROJECT_ID = "your-project-id"
 REGION = "us-central1"
@@ -28,6 +70,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
+    "on_failure_callback": notify_failure, # Trigger notification on any task failure
 }
 
 with DAG(
@@ -68,6 +111,29 @@ with DAG(
         },
     }
 
+
+
+    # Step 1: Check if data exists in GCS
+    check_data = GCSObjectsWithPrefixExistenceSensor(
+        task_id="check_input_data",
+        bucket=BUCKET_NAME,
+        prefix="raw_data/",
+        mode="poke",
+        poke_interval=60,
+        timeout=600, # Wait up to 10 minutes
+    )
+
+    # Step 2: Branching Logic (If/Else)
+    branch_task = BranchPythonOperator(
+        task_id="check_execution_condition",
+        python_callable=check_execution_condition,
+    )
+
+    # Step 2b: Skip path
+    skip_task = DummyOperator(
+        task_id="skip_processing",
+    )
+
     create_batch = DataprocCreateBatchOperator(
         task_id="create_dataproc_batch",
         project_id=PROJECT_ID,
@@ -77,7 +143,30 @@ with DAG(
         timeout=3600, # Timeout in seconds
     )
 
-    # Example of a downstream task (e.g., triggering a Vertex AI Pipeline)
-    # trigger_pipeline = ...
+    # Trigger Vertex AI Pipeline
+    trigger_pipeline = RunPipelineJobOperator(
+        task_id="trigger_vertex_pipeline",
+        project_id=PROJECT_ID,
+        region=REGION,
+        display_name="mlops-pipeline-trigger",
+        template_path=f"gs://{BUCKET_NAME}/pipeline_root/mlops_pipeline.json", # Path to compiled pipeline JSON
+        pipeline_root=f"gs://{BUCKET_NAME}/pipeline_root",
+        parameter_values={
+            "bq_table": "your-project.dataset.table",
+            "project": PROJECT_ID,
+            "region": REGION,
+        },
+    )
 
-    create_batch
+    # Step 4: Log success
+    log_success_task = PythonOperator(
+        task_id="log_success",
+        python_callable=log_success,
+        trigger_rule=TriggerRule.NONE_FAILED_MIN_ONE_SUCCESS, # Run if either path succeeds
+    )
+
+
+    # Define task dependencies
+    check_data >> branch_task
+    branch_task >> create_batch >> trigger_pipeline >> log_success_task
+    branch_task >> skip_task >> log_success_task
