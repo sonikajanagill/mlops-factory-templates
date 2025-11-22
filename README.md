@@ -17,9 +17,21 @@ Welcome to the **MLOps Factory**. This repository is a production-ready, opinion
 * **Vertex AI Pipelines**: Reusable KFP v2 components for training and deployment.
 * **Feature Store**: BigQuery-backed feature management.
 * **Closed-Loop Monitoring**: Automatic retraining triggered by model drift alerts.
+* **Smart Rate Limiting**: Prevents redundant pipeline runs to save costs.
 * **CI/CD**: Cloud Build integration for automated testing and deployment.
 
 ## 🏗️ Architecture
+
+The MLOps Factory uses a multi-trigger architecture with smart rate limiting to prevent redundant pipeline executions and optimize costs.
+
+**📊 [View Full Architecture Diagram](architecture/mlops-architecture.mermaid)** - Shows complete flow including:
+
+* Multiple trigger sources (Scheduler, Cloud Build, Pub/Sub, Manual)
+* Rate limiting decision logic (prevents redundant runs)
+* Closed-loop monitoring and drift detection
+* End-to-end data flow from raw data to deployed models
+
+### Quick Overview
 
 ```mermaid
 graph TD
@@ -50,6 +62,8 @@ graph TD
     Pipeline -->|Registers| Registry
     Pipeline -->|Deploys| Endpoint
 ```
+
+> **Note:** This simplified view shows the core factory components. The full architecture includes rate limiting, monitoring, and multiple trigger sources. See [`architecture/mlops-architecture.mermaid`](architecture/mlops-architecture.mermaid) for complete details.
 
 ## 🛠️ Getting Started
 
@@ -104,6 +118,14 @@ graph TD
 * **Dataproc Serverless**: Pay per second of execution.
 * **Vertex AI**: Pay per training hour and node hour.
 * **Estimated Total for Demo**: < $5.00 (if destroyed after use).
+
+## 💡 For Smaller Teams: AutoMLOps
+
+If this "Factory" architecture feels too heavy for your current needs, consider using **[Google Cloud AutoMLOps](https://github.com/GoogleCloudPlatform/automlops)**.
+
+* **Best for:** Small teams, rapid prototyping, single data scientist.
+* **Why:** It generates a lightweight CI/CD pipeline and KFP definitions automatically from your notebook code.
+* **Path to Factory:** Start with AutoMLOps, then migrate to this "Factory" pattern as you scale to multiple pipelines and complex data dependencies.
 
 ## 🤝 Contributing
 

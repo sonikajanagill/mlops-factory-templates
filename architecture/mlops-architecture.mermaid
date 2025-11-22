@@ -1,34 +1,71 @@
 graph TD
-    subgraph Orchestration [Cloud Composer]
-        DAG[Airflow DAG]
+    subgraph Triggers [Pipeline Trigger Sources]
+        Scheduler[☁️ Cloud Scheduler<br/>Daily 2AM]
+        Build[🔧 Cloud Build<br/>On Code Push]
+        PubSub[📢 Pub/Sub<br/>Drift Alert]
+        Manual[👤 Manual<br/>Airflow UI]
     end
 
-    subgraph Data_Processing [Serverless DataProc]
-        Batch[Spark Batch Job]
+    subgraph Orchestration [Cloud Composer (Factory Manager)]
+        RateLimit{⏱️ Rate Limit Check<br/>Min 5h Between Runs}
+        Skip[⏸️ Skip Execution<br/>Log Event]
+        DAG[Daily Pipeline DAG]
+        DriftDAG[Drift Retrain DAG]
     end
 
-    subgraph ML_Workflow [Vertex AI Pipelines]
-        Pipeline[ML Pipeline]
-        Train[Training]
-        Eval[Evaluation]
-        Deploy[Deployment]
+    subgraph Data_Processing [Dataproc Serverless (Heavy Machinery)]
+        Batch[Spark Feature Eng Job]
     end
 
-    subgraph Storage
+    subgraph ML_Workflow [Vertex AI (Assembly Line)]
+        Pipeline[Training Pipeline]
+        Train[Model Training]
+        Eval[Model Evaluation]
+        Registry[Model Registry]
+        Endpoint[Prediction Endpoint]
+        Monitoring[Model Monitoring]
+    end
+
+    subgraph Storage_Layer [Data & Artifacts]
         GCS[Cloud Storage]
-        BQ[BigQuery]
+        BQ[(BigQuery Feature Store)]
         AR[Artifact Registry]
     end
 
+    subgraph Automation [Closed-Loop Automation]
+        Alerts[Pub/Sub Alerts]
+        CF[Cloud Function Trigger]
+    end
+
+    %% Multi-Trigger Flow
+    Scheduler -->|HTTP POST| RateLimit
+    Build -->|Trigger DAG| RateLimit
+    PubSub -->|Via Cloud Function| CF
+    CF -->|Check Rate Limit| RateLimit
+    Manual -->|Direct Trigger| RateLimit
+    
+    %% Rate Limiting Decision
+    RateLimit -->|✅ >5h Since Last Run| DAG
+    RateLimit -->|❌ <5h Since Last Run| Skip
+    
+    %% Main Pipeline Flow
     DAG -->|Triggers| Batch
+    Batch -->|Reads Raw Data| GCS
+    Batch -->|Writes Features| BQ
+    
     DAG -->|Triggers| Pipeline
-    
-    Batch -->|Reads| GCS
-    Batch -->|Writes| GCS
-    
-    Pipeline -->|Reads| BQ
-    Pipeline -->|Stores Artifacts| GCS
+    Pipeline -->|Reads Features| BQ
     Pipeline -->|Pushes Image| AR
     
-    Train --> Eval
-    Eval -->|If Good| Deploy
+    Pipeline --> Train --> Eval
+    Eval -->|Accuracy > Threshold| Registry
+    Registry -->|Deploy| Endpoint
+    
+    %% Monitoring Loop
+    Endpoint -->|Prediction Logs| Monitoring
+    Monitoring -->|Drift Detected| Alerts
+    Alerts -->|Alert Message| PubSub
+    
+    %% Drift Retrain Path
+    CF -->|If Rate Limit Pass| DriftDAG
+    DriftDAG -->|Retrains| Pipeline
