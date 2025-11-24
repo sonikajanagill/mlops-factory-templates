@@ -6,18 +6,18 @@ graph TD
         Manual[👤 Manual<br/>Airflow UI]
     end
 
-    subgraph Orchestration [Cloud Composer (Factory Manager)]
+    subgraph Orchestration ["Cloud Composer (Factory Manager)"]
         RateLimit{⏱️ Rate Limit Check<br/>Min 5h Between Runs}
         Skip[⏸️ Skip Execution<br/>Log Event]
         DAG[Daily Pipeline DAG]
         DriftDAG[Drift Retrain DAG]
     end
 
-    subgraph Data_Processing [Dataproc Serverless (Heavy Machinery)]
+    subgraph Data_Processing ["Dataproc Serverless (Heavy Machinery)"]
         Batch[Spark Feature Eng Job]
     end
 
-    subgraph ML_Workflow [Vertex AI (Assembly Line)]
+    subgraph ML_Workflow ["Vertex AI (Assembly Line)"]
         Pipeline[Training Pipeline]
         Train[Model Training]
         Eval[Model Evaluation]
