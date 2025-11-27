@@ -1,7 +1,5 @@
 # MLOps Factory Templates
 
-> **"From Data Chaos to Production AI"** - As seen at DevFest London 2025
-
 Welcome to the **MLOps Factory**. This repository is a production-ready, opinionated template for building scalable MLOps pipelines on Google Cloud Platform. It implements the "Factory" pattern where:
 
 * **Cloud Composer (Airflow)** is the **Factory Manager**, orchestrating the entire workflow.
