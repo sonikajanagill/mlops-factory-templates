@@ -1,8 +1,27 @@
-variable "project_id" {}
-variable "region" {}
-variable "composer_name" {}
-variable "network_name" {}
-variable "service_account" {}
+variable "project_id" {
+  description = "The Google Cloud Project ID"
+  type        = string
+}
+
+variable "region" {
+  description = "The Google Cloud region for Composer environment"
+  type        = string
+}
+
+variable "composer_name" {
+  description = "The name of the Composer environment"
+  type        = string
+}
+
+variable "network_name" {
+  description = "The VPC network name for Composer"
+  type        = string
+}
+
+variable "service_account" {
+  description = "The service account email for Composer"
+  type        = string
+}
 
 resource "google_composer_environment" "mlops_composer" {
   name    = var.composer_name

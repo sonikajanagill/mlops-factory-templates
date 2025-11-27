@@ -1,6 +1,17 @@
-variable "project_id" {}
-variable "region" {}
-variable "service_account" {}
+variable "project_id" {
+  description = "The Google Cloud Project ID"
+  type        = string
+}
+
+variable "region" {
+  description = "The Google Cloud region for Vertex AI resources"
+  type        = string
+}
+
+variable "service_account" {
+  description = "The service account email for Vertex AI pipelines"
+  type        = string
+}
 
 # 1. Feature Store (BigQuery backed)
 # Note: Feature Online Store is the modern way, but for batch serving we just need the BQ source.

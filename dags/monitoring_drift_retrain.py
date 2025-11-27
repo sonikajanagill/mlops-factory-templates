@@ -5,10 +5,11 @@ Triggered externally (e.g., by Cloud Function via Pub/Sub alert)
 from datetime import datetime
 from airflow import DAG
 from airflow.providers.google.cloud.operators.vertex_ai.pipeline_job import RunPipelineJobOperator
+from airflow.models import Variable
 
-PROJECT_ID = "your-project-id"
-REGION = "us-central1"
-BUCKET_NAME = "your-bucket-name"
+PROJECT_ID = Variable.get("project_id")
+REGION = Variable.get("region", default_var="us-central1")
+BUCKET_NAME = Variable.get("bucket_name")
 PIPELINE_ROOT = f"gs://{BUCKET_NAME}/pipeline_root"
 
 default_args = {

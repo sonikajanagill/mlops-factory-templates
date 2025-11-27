@@ -17,35 +17,59 @@ def run_job(input_path, output_table):
         .appName("PenguinFeatureEngineering") \
         .getOrCreate()
 
-    # 1. Read Data
-    # Assuming CSV format for simplicity, in prod could be Parquet/Avro
-    df = spark.read.csv(input_path, header=True, inferSchema=True)
+    try:
+        # 1. Read Data
+        # Assuming CSV format for simplicity, in prod could be Parquet/Avro
+        df = spark.read.csv(input_path, header=True, inferSchema=True)
 
-    # 2. Data Cleaning
-    # Drop rows with missing values
-    df_clean = df.dropna()
+        initial_count = df.count()
+        print(f"Read {initial_count} rows from {input_path}")
 
-    # 3. Feature Engineering
-    # Example: Create a new feature 'body_mass_kg' from 'body_mass_g'
-    df_transformed = df_clean.withColumn("body_mass_kg", col("body_mass_g") / 1000)
+        if initial_count == 0:
+            raise ValueError(f"No data found in {input_path}")
 
-    # Example: One-hot encoding for 'sex' (manual for simplicity, use MLlib in prod)
-    df_transformed = df_transformed.withColumn(
-        "is_male", when(col("sex") == "MALE", 1).otherwise(0)
-    )
+        # 2. Data Cleaning
+        # Drop rows with missing values
+        df_clean = df.dropna()
+        clean_count = df_clean.count()
+        print(f"Cleaned data: {clean_count} rows ({initial_count - clean_count} rows removed)")
 
-    # 4. Write to BigQuery
-    # Use the temporary bucket for BQ export
-    # Note: The bucket name should be passed or configured
-    spark.conf.set("temporaryGcsBucket", input_path.split("/")[2]) 
+        # 3. Feature Engineering
+        # Example: Create a new feature 'body_mass_kg' from 'body_mass_g'
+        if "body_mass_g" not in df_clean.columns:
+            print("Warning: 'body_mass_g' column not found, skipping body_mass_kg feature")
+            df_transformed = df_clean
+        else:
+            df_transformed = df_clean.withColumn("body_mass_kg", col("body_mass_g") / 1000)
 
-    df_transformed.write \
-        .format("bigquery") \
-        .option("table", output_table) \
-        .mode("overwrite") \
-        .save()
+        # Example: One-hot encoding for 'sex' (manual for simplicity, use MLlib in prod)
+        if "sex" in df_transformed.columns:
+            df_transformed = df_transformed.withColumn(
+                "is_male", when(col("sex") == "MALE", 1).otherwise(0)
+            )
+        else:
+            print("Warning: 'sex' column not found, skipping is_male feature")
 
-    spark.stop()
+        # 4. Write to BigQuery
+        # Use the temporary bucket for BQ export
+        # Extract bucket name more robustly
+        bucket_name = input_path.replace("gs://", "").split("/")[0]
+        spark.conf.set("temporaryGcsBucket", bucket_name)
+
+        print(f"Writing {df_transformed.count()} rows to BigQuery table: {output_table}")
+        df_transformed.write \
+            .format("bigquery") \
+            .option("table", output_table) \
+            .mode("overwrite") \
+            .save()
+
+        print("Feature engineering job completed successfully!")
+
+    except Exception as e:
+        print(f"Error during feature engineering: {str(e)}")
+        raise
+    finally:
+        spark.stop()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

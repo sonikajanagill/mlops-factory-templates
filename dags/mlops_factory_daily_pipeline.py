@@ -8,7 +8,7 @@ from airflow.providers.google.cloud.operators.dataproc import DataprocCreateBatc
 from airflow.providers.google.cloud.operators.vertex_ai.pipeline_job import RunPipelineJobOperator
 from airflow.providers.google.cloud.sensors.gcs import GCSObjectsWithPrefixExistenceSensor
 from airflow.operators.python import PythonOperator, BranchPythonOperator, ShortCircuitOperator
-from airflow.operators.dummy import DummyOperator
+from airflow.operators.empty import EmptyOperator
 from airflow.utils.trigger_rule import TriggerRule
 
 from airflow.models import Variable
@@ -140,7 +140,7 @@ with DAG(
         trigger_rule=TriggerRule.ALL_SUCCESS
     )
 
-    skip_processing = DummyOperator(task_id='skip_processing')
+    skip_processing = EmptyOperator(task_id='skip_processing')
 
     # Define Dependencies
     rate_limit_check >> check_data_sensor >> branch_task
