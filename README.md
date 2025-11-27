@@ -61,7 +61,7 @@ graph TD
 
 > **Note:** This simplified view shows the core factory components. The full architecture includes rate limiting, monitoring, and multiple trigger sources. See [`architecture/mlops-architecture.mermaid`](architecture/mlops-architecture.mermaid) for complete details.
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -125,4 +125,6 @@ If this "Factory" architecture feels too heavy for your current needs, consider 
 
 ## Contributing
 
-Pull requests are welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
