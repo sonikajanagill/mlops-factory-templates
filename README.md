@@ -1,6 +1,4 @@
-# MLOps Factory Templates 🏭
-
-![MLOps Factory](https://via.placeholder.com/800x400?text=MLOps+Factory+Architecture)
+# MLOps Factory Templates
 
 > **"From Data Chaos to Production AI"** - As seen at DevFest London 2025
 
@@ -10,7 +8,7 @@ Welcome to the **MLOps Factory**. This repository is a production-ready, opinion
 * **Dataproc Serverless** is the **Heavy Machinery**, processing massive datasets efficiently.
 * **Vertex AI** is the **Assembly Line**, training, evaluating, and deploying models.
 
-## 🚀 Features
+## Features
 
 * **Infrastructure as Code (Terraform)**: One-click deployment of the entire factory.
 * **Serverless Data Processing**: PySpark jobs on Dataproc Serverless (no cluster management!).
@@ -20,11 +18,11 @@ Welcome to the **MLOps Factory**. This repository is a production-ready, opinion
 * **Smart Rate Limiting**: Prevents redundant pipeline runs to save costs.
 * **CI/CD**: Cloud Build integration for automated testing and deployment.
 
-## 🏗️ Architecture
+## Architecture
 
 The MLOps Factory uses a multi-trigger architecture with smart rate limiting to prevent redundant pipeline executions and optimize costs.
 
-**📊 [View Full Architecture Diagram](architecture/mlops-architecture.mermaid)** - Shows complete flow including:
+**[View Full Architecture Diagram](architecture/mlops-architecture.mermaid)** - Shows complete flow including:
 
 * Multiple trigger sources (Scheduler, Cloud Build, Pub/Sub, Manual)
 * Rate limiting decision logic (prevents redundant runs)
@@ -104,7 +102,7 @@ graph TD
 4. **Run the Factory:**
     Go to the Airflow UI (link in Composer console) and trigger `mlops_factory_daily_pipeline`.
 
-## 📂 Repository Structure
+## Repository Structure
 
 * `terraform/`: Infrastructure definitions (IAM, Storage, Composer, Vertex).
 * `dags/`: Airflow DAGs for orchestration.
@@ -112,14 +110,14 @@ graph TD
 * `pipelines/`: Vertex AI Pipeline definitions and components.
 * `functions/`: Cloud Functions for event-driven triggers.
 
-## 💰 Cost Estimate
+## Cost Estimate
 
 * **Cloud Composer 3**: ~$0.50/hour (small environment).
 * **Dataproc Serverless**: Pay per second of execution.
 * **Vertex AI**: Pay per training hour and node hour.
 * **Estimated Total for Demo**: < $5.00 (if destroyed after use).
 
-## 💡 For Smaller Teams: AutoMLOps
+## For Smaller Teams: AutoMLOps
 
 If this "Factory" architecture feels too heavy for your current needs, consider using **[Google Cloud AutoMLOps](https://github.com/GoogleCloudPlatform/automlops)**.
 
@@ -127,6 +125,6 @@ If this "Factory" architecture feels too heavy for your current needs, consider 
 * **Why:** It generates a lightweight CI/CD pipeline and KFP definitions automatically from your notebook code.
 * **Path to Factory:** Start with AutoMLOps, then migrate to this "Factory" pattern as you scale to multiple pipelines and complex data dependencies.
 
-## 🤝 Contributing
+## Contributing
 
 Pull requests are welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
