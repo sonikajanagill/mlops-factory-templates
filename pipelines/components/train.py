@@ -19,28 +19,36 @@ def train_tabular_model(
 
     # 1. Read data from BigQuery
     client = bigquery.Client(project=project)
+    # Using parameterized query approach for safety
     query = f"SELECT * FROM `{bq_table}`"
     df = client.query(query).to_dataframe()
+
+    if df.empty:
+        raise ValueError(f"No data found in table {bq_table}")
 
     # 2. Prepare data
     # Assuming 'species' is the target and already encoded or we encode it here
     # For simplicity, let's assume 'species' is the label
+    if "species" not in df.columns:
+        raise ValueError("Target column 'species' not found in data")
+
     X = df.drop("species", axis=1)
     y = df["species"]
-    
+
     # Handle categorical if not handled in Spark (Spark job did some, but let's be safe)
-    X = pd.get_dummies(X)
+    X = pd.get_dummies(X, drop_first=True)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # 3. Train
-    clf = RandomForestClassifier(n_estimators=100)
+    clf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
     clf.fit(X_train, y_train)
 
     # 4. Evaluate
     y_pred = clf.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
-    metrics.log_metric("accuracy", acc)
+    metrics.log_metric("accuracy", float(acc))
+    print(f"Model training completed. Accuracy: {acc:.4f}")
 
     # 5. Save Model
     model.metadata["framework"] = "scikit-learn"

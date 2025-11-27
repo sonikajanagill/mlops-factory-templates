@@ -1,4 +1,7 @@
-variable "project_id" {}
+variable "project_id" {
+  description = "The Google Cloud Project ID"
+  type        = string
+}
 
 # Notification Channel (Email)
 resource "google_monitoring_notification_channel" "email" {

@@ -1,4 +1,7 @@
-variable "project_id" {}
+variable "project_id" {
+  description = "The Google Cloud Project ID"
+  type        = string
+}
 
 resource "google_project_service" "apis" {
   for_each = toset([

@@ -13,7 +13,7 @@ This guide will help you set up your environment and deploy the MLOps pipelines.
     -   Artifact Registry API
 3.  **Tools Installed**:
     -   gcloud CLI
-    -   Python 3.8+
+    -   Python 3.9+
 
 ## Setup Steps
 

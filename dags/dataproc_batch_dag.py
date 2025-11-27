@@ -18,7 +18,8 @@ from airflow.utils.trigger_rule import TriggerRule
 from airflow.providers.google.cloud.operators.vertex_ai.pipeline_job import RunPipelineJobOperator
 from airflow.providers.google.cloud.sensors.gcs import GCSObjectsWithPrefixExistenceSensor
 from airflow.operators.python import PythonOperator, BranchPythonOperator
-from airflow.operators.dummy import DummyOperator
+from airflow.operators.empty import EmptyOperator
+from airflow.models import Variable
 import logging
 import random
 
@@ -57,11 +58,11 @@ def log_success(**kwargs):
     """
     logging.info("Pipeline completed successfully. Model deployed and verified.")
 
-# TODO: Replace with your actual values
-PROJECT_ID = "your-project-id"
-REGION = "us-central1"
-BUCKET_NAME = "your-gcs-bucket"
-PHS_CLUSTER_PATH = f"projects/{PROJECT_ID}/regions/{REGION}/clusters/phs-cluster" # Optional: Persistent History Server
+# Configuration from Airflow Variables
+PROJECT_ID = Variable.get("project_id")
+REGION = Variable.get("region", default_var="us-central1")
+BUCKET_NAME = Variable.get("bucket_name")
+PHS_CLUSTER_PATH = f"projects/{PROJECT_ID}/regions/{REGION}/clusters/phs-cluster"  # Optional: Persistent History Server
 
 default_args = {
     "owner": "airflow",
@@ -130,7 +131,7 @@ with DAG(
     )
 
     # Step 2b: Skip path
-    skip_task = DummyOperator(
+    skip_task = EmptyOperator(
         task_id="skip_processing",
     )
 

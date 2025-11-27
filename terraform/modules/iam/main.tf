@@ -1,4 +1,7 @@
-variable "project_id" {}
+variable "project_id" {
+  description = "The Google Cloud Project ID"
+  type        = string
+}
 
 # 1. Cloud Composer Service Account
 resource "google_service_account" "sa_composer" {
