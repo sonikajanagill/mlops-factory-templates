@@ -13,6 +13,8 @@ This directory contains the Terraform configuration to deploy the MLOps Factory 
 *   **composer**: Deploys Cloud Composer 3 environment.
 *   **vertex-ai**: Sets up Feature Store and Artifact Registry.
 *   **monitoring**: Configures Alert Policies and Notification Channels.
+*   **wif_aws**: Configures Workload Identity Federation for AWS (Pool, Provider, SA impersonation).
+*   **wif_azure**: Configures Workload Identity Federation for Azure (Pool, Provider via OIDC).
 
 ## Usage
 
